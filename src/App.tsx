@@ -3,6 +3,9 @@ import "./App.css";
 import { BookToRead } from "./BookToRead";
 import BookRow from './BookRow';
 
+import Modal from 'react-modal';
+import BookSearchDialog from './BookSearchDialog';
+
 const dummyBooks: BookToRead[] = [
   {
     id: 1,
@@ -24,8 +27,26 @@ const dummyBooks: BookToRead[] = [
   }
 ];
 
+Modal.setAppElement('#root'); // Modal表示時にオーバーレイで囲むDOM領域を指定
+
+const customStyles = {
+  overlay: {
+    backgroundColor: "rgba(0, 0, 0. 0.8)"
+  },
+  content: {
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    bottom: "auto",
+    marginRight: "-50%",
+    padding: 0,
+    transform: "translate(-50%, -50%)"
+  }
+};
+
 const App = () => {
   const [books, setBooks] = useState(dummyBooks); // 引数には初期値が入る
+  const [modalIsOpen, setModalIsOpen] = useState(false) //初期値はfalse
 
   const handleBookDelete = (id: number) => {
     const newBooks = books.filter((book) => book.id !== id); // 厳密には削除でなく、新しい配列に直す
@@ -53,15 +74,28 @@ const App = () => {
     );
   });
 
+  const handleAddClick = () => {
+    setModalIsOpen(true);
+  }
+
+  const handleModalClose = () => {
+    setModalIsOpen(false);
+  }
+
   return (
     <div className="App">
       <section className="nav">
         <h1>読みたい本リスト</h1>
-        <div className="button-like">本を追加</div>
+        <div className="button-like" onClick={handleAddClick}>本を追加</div>
       </section>
-      <section className="main">
-        <h1>{bookRows}</h1>
-      </section>
+      <section className="main">{bookRows}</section>
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={handleModalClose}
+        style={customStyles}
+      >
+        <BookSearchDialog maxResults={20} onBookAdd={(book) => {}}/>
+      </Modal>
     </div>
   );
 };
