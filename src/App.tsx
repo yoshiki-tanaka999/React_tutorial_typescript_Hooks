@@ -1,31 +1,13 @@
-import React, { useState } from "react";
-import "./App.css";
-import { BookToRead } from "./BookToRead";
-import BookRow from './BookRow';
-
+import React, { useState, useEffect } from "react";
 import Modal from 'react-modal';
+
+import "./App.css";
+
+import { BookToRead } from "./BookToRead";
+import { BookDescription } from './BookDescription';
+import BookRow from './BookRow';
 import BookSearchDialog from './BookSearchDialog';
 
-const dummyBooks: BookToRead[] = [
-  {
-    id: 1,
-    title: "はじめてのReact",
-    authors: "ダミー",
-    memo: ""
-  },
-  {
-    id: 2,
-    title: "React Hooks入門",
-    authors: "ダミー",
-    memo: ""
-  },
-  {
-    id: 3,
-    title: "実践Reactアプリケーション開発",
-    authors: "ダミー",
-    memo: ""
-  }
-];
 
 Modal.setAppElement('#root'); // Modal表示時にオーバーレイで囲むDOM領域を指定
 
@@ -44,10 +26,31 @@ const customStyles = {
   }
 };
 
+const APP_KEY = 'react-hooks-tutorial';
+
 const App = () => {
-  const [books, setBooks] = useState(dummyBooks); // 引数には初期値が入る
+  const [books, setBooks] = useState([] as BookToRead[]); // 引数には初期値が入る
   const [modalIsOpen, setModalIsOpen] = useState(false) //初期値はfalse
 
+  // 読み込み時に、ローカルストレージにデータがあるときに、データを取得
+  useEffect(() => {
+    const storedBooks = localStorage.getItem(APP_KEY);
+    if(storedBooks) {
+      setBooks(JSON.parse(storedBooks));
+    }
+  }, []);
+
+  // ローカルストレージに書き込み
+  useEffect(() => {
+    localStorage.setItem(APP_KEY, JSON.stringify(books));
+  }, [books]);
+
+  const handleBookAdd = (book: BookDescription) => {
+    const newBook: BookToRead = {...book, id: books.length +1, memo: ''};
+    const newBooks = [...books, newBook];
+    setBooks(newBooks);
+    setModalIsOpen(false);
+  }
   const handleBookDelete = (id: number) => {
     const newBooks = books.filter((book) => book.id !== id); // 厳密には削除でなく、新しい配列に直す
     setBooks(newBooks);
@@ -82,6 +85,7 @@ const App = () => {
     setModalIsOpen(false);
   }
 
+
   return (
     <div className="App">
       <section className="nav">
@@ -94,7 +98,7 @@ const App = () => {
         onRequestClose={handleModalClose}
         style={customStyles}
       >
-        <BookSearchDialog maxResults={20} onBookAdd={(book) => {}}/>
+        <BookSearchDialog maxResults={20} onBookAdd={(book) => handleBookAdd(book) } />
       </Modal>
     </div>
   );
